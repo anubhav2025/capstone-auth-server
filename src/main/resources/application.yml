@@ -1,7 +1,37 @@
 server:
   port: 8081
+  servlet:
+    session:
+      timeout: 30m
 
 spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/capstone_db
+    username: capstone
+    password: capstone
+  jpa:
+    hibernate:
+      ddl-auto: update
   kafka:
     bootstrap-servers: localhost:9092
     # We are defining producerFactory in code, so minimal config here.
+---
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 1065060854386-ds04bh1c4qtdbtpqd27dnfnjv627fim3.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+            redirect-uri: "http://localhost:8081/login/oauth2/code/google"
+            client-name: Google
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://www.googleapis.com/oauth2/v4/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub

@@ -28,6 +28,9 @@ public class Finding {
     private String componentName;
     private String componentVersion;
 
+    private String createdAt;
+    private String updatedAt;
+
     private Map<String, Object> toolAdditionalProperties;
 
     // Getters and setters ...
@@ -142,4 +145,17 @@ public class Finding {
     public void setToolAdditionalProperties(Map<String, Object> toolAdditionalProperties) {
         this.toolAdditionalProperties = toolAdditionalProperties;
     }
+    public String getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 }

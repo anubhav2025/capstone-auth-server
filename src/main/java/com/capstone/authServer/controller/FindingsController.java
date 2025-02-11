@@ -13,6 +13,8 @@ import com.capstone.authServer.dto.findings.FindingResponseDTO;
 import com.capstone.authServer.model.Finding;
 import com.capstone.authServer.model.FindingSeverity;
 import com.capstone.authServer.model.FindingState;
+import com.capstone.authServer.model.SearchFindingsResult;
+import com.capstone.authServer.security.RoleGuard;
 import com.capstone.authServer.dto.ScanToolType;
 import com.capstone.authServer.service.ElasticSearchService;
 import com.capstone.authServer.utils.FindingToFindingResponseDTO;
@@ -27,6 +29,7 @@ public class FindingsController {
     }
 
     @GetMapping("/findings")
+    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN", "USER"})
     public Map<String, Object> getFindings(
             @RequestParam(required = false) ScanToolType toolType,
             @RequestParam(required = false) FindingSeverity severity,
@@ -34,15 +37,16 @@ public class FindingsController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "1000") int size) {
 
-        List<Finding> findings = service.searchFindings(toolType, severity, state, page, size);
+        SearchFindingsResult searchResult = service.searchFindings(toolType, severity, state, page, size);
 
-        List<FindingResponseDTO> dtoList = findings.stream()
+        List<FindingResponseDTO> dtoList = searchResult.getFindings().stream()
                 .map(finding -> FindingToFindingResponseDTO.convert(finding))
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("status", "success");
         response.put("findingsCount", dtoList.size());
+        response.put("findingsTotal", searchResult.getTotal());
         response.put("findings", dtoList);
 
         return response;

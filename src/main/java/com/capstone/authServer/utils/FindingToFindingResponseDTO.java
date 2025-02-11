@@ -21,6 +21,8 @@ public class FindingToFindingResponseDTO {
         dto.setFilePath(finding.getFilePath());
         dto.setComponentName(finding.getComponentName());
         dto.setComponentVersion(finding.getComponentVersion());
+        dto.setCreatedAt(finding.getCreatedAt());
+        dto.setUpdatedAt(finding.getUpdatedAt());
 
         return dto;
     }
