@@ -1,8 +1,9 @@
 package com.capstone.authServer.repository;
 
-import com.capstone.authServer.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import com.capstone.authServer.model.User;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, String> {
+    // googleId is the PK, so the ID type is String
     User findByEmail(String email);
 }

@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Endpoints to power the dashboard charts.
- */
 @RestController
 public class MetricsController {
 
@@ -23,38 +20,32 @@ public class MetricsController {
     }
 
     /**
-     * Pie chart: overall distribution of toolType across all findings
+     * Example: distribution of toolType across all findings for a tenant.
      */
     @GetMapping("/metrics/tool-distribution")
-    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN", "USER"})
-    public List<Map<String, Object>> getToolDistribution() throws Exception {
-        // returns e.g. [ { "toolType": "CODE_SCAN", "count": 15 }, ... ]
-        return metricsService.getToolDistribution();
+    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
+    public List<Map<String, Object>> getToolDistribution(@RequestParam String tenantId) throws Exception {
+        // The service looks up Tenant.esIndex by tenantId and queries accordingly
+        return metricsService.getToolDistribution(tenantId);
     }
 
-    /**
-     * State distribution for a selected tool type
-     */
     @GetMapping("/metrics/state-distribution")
-    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN", "USER"})
-    public List<Map<String, Object>> getStateDistribution(@RequestParam ScanToolType toolType) throws Exception {
-        // e.g. [ { "state": "OPEN", "count": 10 }, { "state": "DISMISSED", "count": 5 }, ... ]
-        return metricsService.getStateDistribution(toolType);
+    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
+    public List<Map<String, Object>> getStateDistribution(@RequestParam String tenantId,
+                                                          @RequestParam ScanToolType toolType) throws Exception {
+        return metricsService.getStateDistribution(tenantId, toolType);
     }
 
-    /**
-     * Severity distribution for a selected tool type
-     */
     @GetMapping("/metrics/severity-distribution")
-    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN", "USER"})
-    public List<Map<String, Object>> getSeverityDistribution(@RequestParam ScanToolType toolType) throws Exception {
-        // e.g. [ { "severity": "CRITICAL", "count": 2 }, { "severity": "HIGH", "count": 5 }, ... ]
-        return metricsService.getSeverityDistribution(toolType);
+    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
+    public List<Map<String, Object>> getSeverityDistribution(@RequestParam String tenantId,
+                                                             @RequestParam ScanToolType toolType) throws Exception {
+        return metricsService.getSeverityDistribution(tenantId, toolType);
     }
 
     @GetMapping("/metrics/cvss-histogram")
-    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN", "USER"})
-    public List<Map<String, Object>> getCvssHistogram() throws Exception {
-        return metricsService.getCvssHistogram();
+    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
+    public List<Map<String, Object>> getCvssHistogram(@RequestParam String tenantId) throws Exception {
+        return metricsService.getCvssHistogram(tenantId);
     }
 }

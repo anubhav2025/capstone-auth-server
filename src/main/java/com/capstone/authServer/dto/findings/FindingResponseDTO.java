@@ -5,7 +5,6 @@ import java.util.List;
 import com.capstone.authServer.model.FindingSeverity;
 import com.capstone.authServer.model.FindingState;
 import com.capstone.authServer.dto.ScanToolType;
-import com.capstone.authServer.dto.ScanType;
 
 //EXCLUDES toolAdditionalProperties
 public class FindingResponseDTO {

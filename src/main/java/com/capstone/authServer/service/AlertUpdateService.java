@@ -11,36 +11,38 @@ import com.capstone.authServer.dto.AlertUpdateDTO;
 import com.capstone.authServer.dto.ScanEventDTO;
 import com.capstone.authServer.dto.ScanToolType;
 import com.capstone.authServer.dto.ScanType;
-import com.capstone.authServer.model.Credential;
-import com.capstone.authServer.repository.CredentialRepository;
+import com.capstone.authServer.model.Tenant;
+import com.capstone.authServer.repository.TenantRepository;
 
 @Service
 public class AlertUpdateService {
 
-    private final CredentialRepository credentialRepository;
+    private final TenantRepository tenantRepository;
     private final WebClient.Builder webClientBuilder;
-    private final ScanEventProducerService scanEventProducerService; 
+    private final ScanEventProducerService scanEventProducerService;
 
-    public AlertUpdateService(CredentialRepository credentialRepository,
+    public AlertUpdateService(TenantRepository tenantRepository,
                               WebClient.Builder webClientBuilder,
                               ScanEventProducerService scanEventProducerService) {
-        this.credentialRepository = credentialRepository;
+        this.tenantRepository = tenantRepository;
         this.webClientBuilder = webClientBuilder;
         this.scanEventProducerService = scanEventProducerService;
     }
 
     public void updateAlertState(AlertUpdateDTO dto) throws Exception {
-        // 1) Find the credential for (owner, repo)
-        Credential cred = credentialRepository.findByOwnerAndRepository(dto.getOwner(), dto.getRepo());
-        if (cred == null) {
-            throw new RuntimeException("No credentials found for " + dto.getOwner() + "/" + dto.getRepo());
+        // 1) Find the tenant by tenantId
+        Tenant tenant = tenantRepository.findByTenantId(dto.getTenantId());
+        if (tenant == null) {
+            throw new RuntimeException("No tenant found for tenantId: " + dto.getTenantId());
         }
-        String token = cred.getPersonalAccessToken();
 
-        // 2) Build the GH endpoint depending on the toolType
-        String baseUrl = "https://api.github.com/repos/" + dto.getOwner() + "/" + dto.getRepo();
+        String token = tenant.getPat();
+
+        // 2) Build the GitHub endpoint depending on the toolType
+        //    (We derive owner/repo from Tenant)
+        String baseUrl = "https://api.github.com/repos/" + tenant.getOwner() + "/" + tenant.getRepo();
         String patchUrl;
-        // If toolType is "CODE_SCAN","DEPENDABOT","SECRET_SCAN"
+
         ScanToolType toolTypeEnum = ScanToolType.valueOf(dto.getToolType());
         switch (toolTypeEnum) {
             case CODE_SCAN:
@@ -56,19 +58,15 @@ public class AlertUpdateService {
                 throw new IllegalStateException("Unknown tool type: " + dto.getToolType());
         }
 
-        // 3) Prepare request body
-        // We must map internal values (e.g. "DISMISSED","FALSE_POSITIVE") -> 
-        // GitHub-accepted strings ("dismissed","false positive").
-        // We'll store them in a map:
+        // 3) Prepare request body, including the mapping logic for reasons
+        //    (same as your original code)
         Map<String, Object> patchRequest = new HashMap<>();
 
-        // Let's do a small function to map reason => GitHub string
+        // Map the internal reason -> GitHub-accepted strings
         String ghReason = mapReason(toolTypeEnum, dto.getReason());
 
-        // For SECRET_SCAN: "resolved"/"open" and "resolution"
-        // For CODE_SCAN/DEPENDABOT: "dismissed"/"open" and "dismissed_reason"
-        // We handle "open" or "dismissed"/"resolved" logic:
-
+        // For SECRET_SCAN: use "resolved"/"open" + "resolution"
+        // For CODE_SCAN/DEPENDABOT: use "dismissed"/"open" + "dismissed_reason"
         String newState = dto.getNewState().toLowerCase(); 
         // e.g. "DISMISSED" -> "dismissed", "OPEN" -> "open", "RESOLVED" -> "resolved"
 
@@ -110,27 +108,20 @@ public class AlertUpdateService {
                  .block(); // simplistic approach
 
         // 5) After success, re-trigger scanning
+        //    We now use tenantId + tools in ScanEventDTO, not owner/repo
         ScanEventDTO eventDTO = new ScanEventDTO();
-        eventDTO.setOwner(cred.getOwner());
-        eventDTO.setRepository(cred.getRepository());
-        eventDTO.setUsername(cred.getOwner());
+        eventDTO.setTenantId(dto.getTenantId());
         eventDTO.setTools(Arrays.asList(ScanType.ALL));
 
         scanEventProducerService.publishScanEvent(eventDTO);
     }
 
     /**
-     * Map internal reason (e.g. "FALSE_POSITIVE") to 
-     * GitHub accepted strings (e.g. "false positive").
+     * Map internal reason (e.g. "FALSE_POSITIVE") -> GitHub accepted strings 
+     * (e.g. "false positive").
      */
     private String mapReason(ScanToolType toolType, String reason) {
         if (reason == null) return null;
-
-        // Example. Adjust as needed:
-        // CODE SCAN => "false positive","won't fix","used in tests"
-        // DEPENDABOT => "fix_started","inaccurate","no_bandwidth","not_used","tolerable_risk"
-        // SECRET SCAN => "false_positive","won't fix","revoked","used_in_tests"
-        // We'll do a couple of examples:
 
         switch (toolType) {
             case CODE_SCAN:

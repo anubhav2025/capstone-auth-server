@@ -5,64 +5,110 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.capstone.authServer.dto.ScanToolType;
-import com.capstone.authServer.model.Finding;
-import com.capstone.authServer.model.FindingSeverity;
-import com.capstone.authServer.model.FindingState;
-import com.capstone.authServer.model.SearchFindingsResult;
-
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 
+import com.capstone.authServer.dto.ScanToolType;
+import com.capstone.authServer.model.Finding;
+import com.capstone.authServer.model.FindingSeverity;
+import com.capstone.authServer.model.FindingState;
+import com.capstone.authServer.model.SearchFindingsResult;
+import com.capstone.authServer.model.Tenant;
+import com.capstone.authServer.repository.TenantRepository;
+
 @Service
 public class ElasticSearchService {
 
     private final ElasticsearchClient esClient;
+    private final TenantRepository tenantRepository;
 
-    public ElasticSearchService(ElasticsearchClient esClient) {
+    public ElasticSearchService(ElasticsearchClient esClient, TenantRepository tenantRepository) {
         this.esClient = esClient;
+        this.tenantRepository = tenantRepository;
     }
 
-    public void saveFinding(Finding finding) {
+    /**
+     * Save a single Finding document in Elasticsearch.
+     * (If you store tenant-based data in separate indices, 
+     *  ensure you pick the right index per tenant.)
+     */
+    public void saveFinding(String tenantId, Finding finding) {
         try {
-            esClient.index(i -> i.index("findings").id(finding.getId()).document(finding));
+            Tenant tenant = tenantRepository.findByTenantId(tenantId);
+            if (tenant == null) {
+                throw new RuntimeException("Tenant not found for tenantId=" + tenantId);
+            }
+
+            esClient.index(i -> i
+                .index(tenant.getEsIndex())  // store in the tenant's index
+                .id(finding.getId())
+                .document(finding)
+            );
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public SearchFindingsResult searchFindings(ScanToolType toolType, FindingSeverity severity, FindingState state, int page, int size) {
-        SearchResponse<Finding> response;
+    /**
+     * Search findings for a given tenant (tenantId) 
+     * while optionally filtering by toolType, severity, and state.
+     */
+    public SearchFindingsResult searchFindings(
+            String tenantId,
+            ScanToolType toolType,
+            FindingSeverity severity,
+            FindingState state,
+            int page,
+            int size
+    ) {
         try {
-            response = esClient.search(s -> s
-                    .index("findings")
+            // 1) Fetch the Tenant to get esIndex
+            Tenant tenant = tenantRepository.findByTenantId(tenantId);
+            if (tenant == null) {
+                throw new RuntimeException("Tenant not found for tenantId=" + tenantId);
+            }
+
+            // 2) Execute the search in the tenant's ES index
+            SearchResponse<Finding> response = esClient.search(s -> s
+                    .index(tenant.getEsIndex())  // use the tenant-specific index
                     .query(q -> q.bool(buildBoolQuery(toolType, severity, state)))
                     .sort(sort -> sort.field(f -> f
-                    .field("updatedAt")           // <--- your field name in ES
-                    .order(SortOrder.Desc)
+                        .field("updatedAt")  // or whichever field you want to sort on
+                        .order(SortOrder.Desc)
                     ))
                     .from(page * size)
                     .size(size),
-                    Finding.class);
+                Finding.class
+            );
 
+            // 3) Build a result object
+            long total = response.hits().total() != null
+                         ? response.hits().total().value()
+                         : 0;
 
-                    long total = response.hits().total().value(); // total matching docs
-                    List<Finding> results = response.hits().hits().stream()
-                                            .map(Hit::source)
-                                            .collect(Collectors.toList());
-                    return new SearchFindingsResult(results, total);
+            List<Finding> results = response.hits().hits().stream()
+                    .map(Hit::source)
+                    .collect(Collectors.toList());
+
+            return new SearchFindingsResult(results, total);
+
         } catch (Exception e) {
             e.printStackTrace();
             return new SearchFindingsResult(List.of(), 0L);
         }
     }
 
+    /**
+     * Helper to build the "bool" query with optional filters on toolType, severity, and state.
+     */
     private BoolQuery buildBoolQuery(ScanToolType toolType, FindingSeverity severity, FindingState state) {
         return BoolQuery.of(b -> {
             if (toolType != null) {
+                // If you store toolType as a keyword field:
                 b.must(m -> m.term(t -> t.field("toolType.keyword").value(toolType.name())));
             }
             if (severity != null) {

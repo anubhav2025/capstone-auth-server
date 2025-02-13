@@ -29,18 +29,30 @@ public class FindingsController {
     }
 
     @GetMapping("/findings")
-    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN", "USER"})
+    @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
     public Map<String, Object> getFindings(
+            @RequestParam(required = false) String tenantId,          // The tenant ID
             @RequestParam(required = false) ScanToolType toolType,
             @RequestParam(required = false) FindingSeverity severity,
             @RequestParam(required = false) FindingState state,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000") int size) {
+            @RequestParam(defaultValue = "50") int size) {
 
-        SearchFindingsResult searchResult = service.searchFindings(toolType, severity, state, page, size);
+        // If tenantId is null or empty, you might fallback to the user's default tenant 
+        // or throw an error. This is your design choice. 
+        // Below we assume tenantId must be provided, or you'd do a fallback.
+
+        SearchFindingsResult searchResult = service.searchFindings(
+                tenantId,  // pass tenantId to the service 
+                toolType,
+                severity,
+                state,
+                page,
+                size
+        );
 
         List<FindingResponseDTO> dtoList = searchResult.getFindings().stream()
-                .map(finding -> FindingToFindingResponseDTO.convert(finding))
+                .map(FindingToFindingResponseDTO::convert)
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -51,6 +63,4 @@ public class FindingsController {
 
         return response;
     }
-
-
 }
