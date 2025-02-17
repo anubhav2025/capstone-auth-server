@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.capstone.authServer.dto.findings.FindingResponseDTO;
+import com.capstone.authServer.enums.ToolTypes;
 import com.capstone.authServer.model.Finding;
 import com.capstone.authServer.model.FindingSeverity;
 import com.capstone.authServer.model.FindingState;
 import com.capstone.authServer.model.SearchFindingsResult;
 import com.capstone.authServer.security.RoleGuard;
-import com.capstone.authServer.dto.ScanToolType;
 import com.capstone.authServer.service.ElasticSearchService;
 import com.capstone.authServer.utils.FindingToFindingResponseDTO;
 
@@ -32,7 +32,7 @@ public class FindingsController {
     @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
     public Map<String, Object> getFindings(
             @RequestParam(required = false) String tenantId,          // The tenant ID
-            @RequestParam(required = false) ScanToolType toolType,
+            @RequestParam(required = false) ToolTypes toolType,
             @RequestParam(required = false) FindingSeverity severity,
             @RequestParam(required = false) FindingState state,
             @RequestParam(defaultValue = "0") int page,

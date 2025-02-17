@@ -1,6 +1,6 @@
 package com.capstone.authServer.controller;
 
-import com.capstone.authServer.dto.ScanToolType;
+import com.capstone.authServer.enums.ToolTypes;
 import com.capstone.authServer.security.RoleGuard;
 import com.capstone.authServer.service.MetricsService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,14 +32,14 @@ public class MetricsController {
     @GetMapping("/metrics/state-distribution")
     @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
     public List<Map<String, Object>> getStateDistribution(@RequestParam String tenantId,
-                                                          @RequestParam ScanToolType toolType) throws Exception {
+                                                          @RequestParam ToolTypes toolType) throws Exception {
         return metricsService.getStateDistribution(tenantId, toolType);
     }
 
     @GetMapping("/metrics/severity-distribution")
     @RoleGuard(allowed={"SUPER_ADMIN","ADMIN","USER"})
     public List<Map<String, Object>> getSeverityDistribution(@RequestParam String tenantId,
-                                                             @RequestParam ScanToolType toolType) throws Exception {
+                                                             @RequestParam ToolTypes toolType) throws Exception {
         return metricsService.getSeverityDistribution(tenantId, toolType);
     }
 

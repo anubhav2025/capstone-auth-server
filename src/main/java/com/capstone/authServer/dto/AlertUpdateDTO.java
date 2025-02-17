@@ -1,12 +1,15 @@
 package com.capstone.authServer.dto;
 
+import com.capstone.authServer.enums.ToolTypes;
+
 public class AlertUpdateDTO {
 
     private String tenantId;   // Instead of owner+repo
+    private String esFindingId;
     private String alertNumber;
     private String newState;
     private String reason;
-    private String toolType;   // "CODE_SCAN","DEPENDABOT","SECRET_SCAN"
+    private ToolTypes toolType;   // "CODE_SCAN","DEPENDABOT","SECRET_SCAN"
 
     // getters & setters
     public String getTenantId() {
@@ -37,10 +40,16 @@ public class AlertUpdateDTO {
         this.reason = reason;
     }
 
-    public String getToolType() {
+    public ToolTypes getToolType() {
         return toolType;
     }
-    public void setToolType(String toolType) {
+    public void setToolType(ToolTypes toolType) {
         this.toolType = toolType;
+    }
+    public String getEsFindingId() {
+        return esFindingId;
+    }
+    public void setEsFindingId(String esFindingId) {
+        this.esFindingId = esFindingId;
     }
 }

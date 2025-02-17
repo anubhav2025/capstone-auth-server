@@ -8,7 +8,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import com.capstone.authServer.dto.ScanToolType;
+import com.capstone.authServer.enums.ToolTypes;
 import com.capstone.authServer.model.Tenant;
 import com.capstone.authServer.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -68,7 +68,7 @@ public class MetricsService {
      * Example #2: Distribution of states for the given tool type
      *    e.g. [ { "state":"OPEN", "count":10 }, { "state":"DISMISSED", "count":5 } ... ]
      */
-    public List<Map<String, Object>> getStateDistribution(String tenantId, ScanToolType toolType) throws IOException {
+    public List<Map<String, Object>> getStateDistribution(String tenantId, ToolTypes toolType) throws IOException {
         Tenant tenant = fetchTenant(tenantId);
 
         // We filter by toolType.keyword == <toolType.name()>, then do a sub-agg by state.keyword
@@ -108,7 +108,7 @@ public class MetricsService {
      * Example #3: Distribution of severities for the given tool type
      *    e.g. [ { "severity":"CRITICAL", "count":2 }, ... ]
      */
-    public List<Map<String, Object>> getSeverityDistribution(String tenantId, ScanToolType toolType) throws IOException {
+    public List<Map<String, Object>> getSeverityDistribution(String tenantId, ToolTypes toolType) throws IOException {
         Tenant tenant = fetchTenant(tenantId);
 
         Aggregation filterAgg = Aggregation.of(a -> a

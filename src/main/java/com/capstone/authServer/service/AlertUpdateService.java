@@ -1,6 +1,5 @@
 package com.capstone.authServer.service;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,9 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.capstone.authServer.dto.AlertUpdateDTO;
-import com.capstone.authServer.dto.ScanEventDTO;
-import com.capstone.authServer.dto.ScanToolType;
-import com.capstone.authServer.dto.ScanType;
+import com.capstone.authServer.enums.ToolTypes;
 import com.capstone.authServer.model.Tenant;
 import com.capstone.authServer.repository.TenantRepository;
 
@@ -43,7 +40,7 @@ public class AlertUpdateService {
         String baseUrl = "https://api.github.com/repos/" + tenant.getOwner() + "/" + tenant.getRepo();
         String patchUrl;
 
-        ScanToolType toolTypeEnum = ScanToolType.valueOf(dto.getToolType());
+        ToolTypes toolTypeEnum = dto.getToolType();
         switch (toolTypeEnum) {
             case CODE_SCAN:
                 patchUrl = baseUrl + "/code-scanning/alerts/" + dto.getAlertNumber();
@@ -70,7 +67,7 @@ public class AlertUpdateService {
         String newState = dto.getNewState().toLowerCase(); 
         // e.g. "DISMISSED" -> "dismissed", "OPEN" -> "open", "RESOLVED" -> "resolved"
 
-        if (toolTypeEnum == ScanToolType.SECRET_SCAN) {
+        if (toolTypeEnum == ToolTypes.SECRET_SCAN) {
             if ("resolved".equalsIgnoreCase(newState)) {
                 patchRequest.put("state", "resolved");
                 if (ghReason != null) {
@@ -109,18 +106,20 @@ public class AlertUpdateService {
 
         // 5) After success, re-trigger scanning
         //    We now use tenantId + tools in ScanEventDTO, not owner/repo
-        ScanEventDTO eventDTO = new ScanEventDTO();
-        eventDTO.setTenantId(dto.getTenantId());
-        eventDTO.setTools(Arrays.asList(ScanType.ALL));
 
-        scanEventProducerService.publishScanEvent(eventDTO);
+        // ScanEventDTO eventDTO = new ScanEventDTO();
+        // eventDTO.setTenantId(dto.getTenantId());
+        // eventDTO.setTools(Arrays.asList(ScanType.ALL));
+
+        // scanEventProducerService.publishScanEvent(tool);
+        
     }
 
     /**
      * Map internal reason (e.g. "FALSE_POSITIVE") -> GitHub accepted strings 
      * (e.g. "false positive").
      */
-    private String mapReason(ScanToolType toolType, String reason) {
+    private String mapReason(ToolTypes toolType, String reason) {
         if (reason == null) return null;
 
         switch (toolType) {

@@ -12,9 +12,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
   kafka:
-    bootstrap-servers: localhost:9092
-    # We are defining producerFactory in code, so minimal config here.
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: auth-server-group
+
 ---
 spring:
   security:

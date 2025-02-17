@@ -11,7 +11,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 
-import com.capstone.authServer.dto.ScanToolType;
+import com.capstone.authServer.enums.ToolTypes;
 import com.capstone.authServer.model.Finding;
 import com.capstone.authServer.model.FindingSeverity;
 import com.capstone.authServer.model.FindingState;
@@ -59,7 +59,7 @@ public class ElasticSearchService {
      */
     public SearchFindingsResult searchFindings(
             String tenantId,
-            ScanToolType toolType,
+            ToolTypes toolType,
             FindingSeverity severity,
             FindingState state,
             int page,
@@ -105,7 +105,7 @@ public class ElasticSearchService {
     /**
      * Helper to build the "bool" query with optional filters on toolType, severity, and state.
      */
-    private BoolQuery buildBoolQuery(ScanToolType toolType, FindingSeverity severity, FindingState state) {
+    private BoolQuery buildBoolQuery(ToolTypes toolType, FindingSeverity severity, FindingState state) {
         return BoolQuery.of(b -> {
             if (toolType != null) {
                 // If you store toolType as a keyword field:

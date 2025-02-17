@@ -3,7 +3,7 @@ package com.capstone.authServer.model;
 import java.util.List;
 import java.util.Map;
 
-import com.capstone.authServer.dto.ScanToolType;
+import com.capstone.authServer.enums.ToolTypes;
 
 public class Finding {
 
@@ -13,7 +13,7 @@ public class Finding {
     private FindingSeverity severity;
     private FindingState state;
     private String url;
-    private ScanToolType toolType;
+    private ToolTypes toolType;
 
     private String cve;
     private List<String> cwes;
@@ -76,10 +76,10 @@ public class Finding {
         this.url = url;
     }
 
-    public ScanToolType getToolType() {
+    public ToolTypes getToolType() {
         return toolType;
     }
-    public void setToolType(ScanToolType toolType) {
+    public void setToolType(ToolTypes toolType) {
         this.toolType = toolType;
     }
 
