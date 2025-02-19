@@ -21,7 +21,7 @@ public class ScanEventProducerService {
     }
 
     public void publishScanEvent(ToolTypes tool, String tenantId) {
-        String topic = "jfc_auth";
+        String topic = "job_ingestion_topic";
         ScanRequestEventPayload payload = new ScanRequestEventPayload(tool, tenantId);
         ScanRequestEvent event = new ScanRequestEvent(payload);
         try {

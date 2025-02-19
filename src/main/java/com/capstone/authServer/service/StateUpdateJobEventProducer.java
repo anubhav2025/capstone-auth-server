@@ -21,7 +21,7 @@ public class StateUpdateJobEventProducer {
     public void produce(StateUpdateJobEvent StateUpdateJobEvent) {
         try {
             String json = objectMapper.writeValueAsString(StateUpdateJobEvent);
-            kafkaTemplate.send("jfc_auth",
+            kafkaTemplate.send("job_ingestion_topic",
                                StateUpdateJobEvent.getEventId(),
                                json);
             System.out.println("1. StateUpdateJobEvent produced at AuthServer, id: " + StateUpdateJobEvent.getEventId());
