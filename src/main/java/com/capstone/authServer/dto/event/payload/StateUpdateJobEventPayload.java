@@ -1,7 +1,6 @@
 package com.capstone.authServer.dto.event.payload;
 
 import com.capstone.authServer.enums.ToolTypes;
-// import com.capstone.authServer.model.FindingState;
 
 public class StateUpdateJobEventPayload {
     private String esFindingId;

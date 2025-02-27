@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.capstone.authServer.dto.findings.FindingResponseDTO;
 import com.capstone.authServer.enums.ToolTypes;
-import com.capstone.authServer.model.Finding;
 import com.capstone.authServer.model.FindingSeverity;
 import com.capstone.authServer.model.FindingState;
 import com.capstone.authServer.model.SearchFindingsResult;

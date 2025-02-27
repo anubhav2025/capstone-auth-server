@@ -23,6 +23,7 @@ public class FindingToFindingResponseDTO {
         dto.setComponentVersion(finding.getComponentVersion());
         dto.setCreatedAt(finding.getCreatedAt());
         dto.setUpdatedAt(finding.getUpdatedAt());
+        dto.setTicketId(finding.getTicketId());
 
         return dto;
     }

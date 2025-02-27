@@ -31,10 +31,17 @@ public class FindingResponseDTO {
 
     private String createdAt;
     private String updatedAt;
+    private String ticketId;
 
     // -- Getters and setters --
     public String getId() {
         return id;
+    }
+    public String getTicketId() {
+        return ticketId;
+    }
+    public void setTicketId(String ticketId) {
+        this.ticketId = ticketId;
     }
     public void setId(String id) {
         this.id = id;

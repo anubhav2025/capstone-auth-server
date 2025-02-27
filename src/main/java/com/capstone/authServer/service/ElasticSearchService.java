@@ -1,5 +1,6 @@
 package com.capstone.authServer.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,33 @@ public class ElasticSearchService {
         }
     }
 
+    public List<Finding> searchFindingsById(String tenantId, String findingId) {
+        try {
+            Tenant tenant = tenantRepository.findByTenantId(tenantId);
+            if (tenant == null) {
+                throw new RuntimeException("Tenant not found for tenantId=" + tenantId);
+            }
+
+            SearchResponse<Finding> response = esClient.search(s -> s
+                    .index(tenant.getEsIndex())
+                    .query(q -> q.term(t -> t
+                            .field("_id")
+                            .value(findingId)
+                    ))
+                    .size(1),
+                Finding.class
+            );
+
+            return response.hits().hits().stream()
+                    .map(Hit::source)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
     /**
      * Search findings for a given tenant (tenantId) 
      * while optionally filtering by toolType, severity, and state.
@@ -66,11 +94,14 @@ public class ElasticSearchService {
             int size
     ) {
         try {
+
             // 1) Fetch the Tenant to get esIndex
             Tenant tenant = tenantRepository.findByTenantId(tenantId);
+            
             if (tenant == null) {
                 throw new RuntimeException("Tenant not found for tenantId=" + tenantId);
             }
+            System.out.println(tenant.getEsIndex());
 
             // 2) Execute the search in the tenant's ES index
             SearchResponse<Finding> response = esClient.search(s -> s

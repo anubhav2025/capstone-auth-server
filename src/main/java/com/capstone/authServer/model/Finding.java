@@ -28,6 +28,8 @@ public class Finding {
     private String componentName;
     private String componentVersion;
 
+    private String ticketId;
+
     private String createdAt;
     private String updatedAt;
 
@@ -156,6 +158,12 @@ public class Finding {
     }
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    public String getTicketId() {
+        return ticketId;
+    }
+    public void setTicketId(String ticketId) {
+        this.ticketId = ticketId;
     }
 
 }
